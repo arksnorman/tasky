@@ -1,15 +1,14 @@
 name: Infrastructure deployment workflow
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["deploy docker image workflow"]
+    types: [completed]
 
 jobs:
   deploy-infrastructure:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
-    needs: build-and-push-image
 
     steps:
       - name: Checkout
