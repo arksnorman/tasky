@@ -43,3 +43,48 @@ jobs:
           echo "Instance Private IP: ${{ steps.cloudformation.outputs.InstancePrivateIP }}"
           echo "Instance Public IP: ${{ steps.cloudformation.outputs.InstancePublicIP }}"
           echo "Bucket Name: ${{ steps.cloudformation.outputs.BucketName }}"
+  
+  run-ansible:
+    name: Setup DB with Ansible
+    runs-on: ubuntu-latest
+    needs: deploy-infrastructure
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Ansible
+        run: |
+          sudo apt update
+          sudo apt install software-properties-common -y
+          sudo add-apt-repository --update ppa:ansible/ansible -y
+          sudo apt install ansible -y
+
+      - name: Add SSH Key in memory
+        run: |
+          eval "$(ssh-agent -s)"
+          ssh-add <(echo "${{ secrets.SSH_KEY }}")
+
+      - name: Create vars.yaml for Ansible
+        env:
+          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.InstancePublicIP }}
+        run: |
+          cat <<EOF > vars.yaml
+          ---
+          download_url: "${{ vars.MONGO_SERVER_DOWNLOAD_URL }}"
+          download_dest: "${{ vars.MONGO_SERVER_BINARY_DEST }}"
+          mongo_bind_ip: "${{ env.MONGO_BIND_IP }}"
+          mongosh_dest: "${{ vars.MONGOSH_BINARY_DEST }}"
+          mongosh_url: "${{ vars.MONGOSH_DOWNLOAD_URL }}"
+          db_tools_url: "${{ vars.MONGO_TOOLS_URL }}"
+          download_tools_dest: "${{ vars.MONGO_TOOLS_DEST }}"
+          EOF
+
+      - name: Show vars.yaml content
+        run: cat vars.yaml          
+
+      - name: Run Ansible Playbook to Setup DB
+        env:
+          INSTANCE_IP: ${{ needs.deploy-infrastructure.outputs.InstancePublicIP }}
+        run: |
+          ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' --user ubuntu -e @vars.yaml -i ${{ env.INSTANCE_IP }}, ansible-deploy.yaml

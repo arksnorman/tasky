@@ -1,0 +1,113 @@
+---
+- name: deploy db
+  hosts: all
+  become: yes
+
+  tasks:
+    - name: check if mongod binary exists
+      ansible.builtin.stat:
+        path: /usr/bin/mongod
+      register: mongod_binary
+
+    - name: check if mongodump binary exists
+      ansible.builtin.stat:
+        path: /usr/bin/mongodump
+      register: mongodump_binary
+
+    - name: ensure dl directory exists
+      ansible.builtin.file:
+        path: "{{ download_dest | dirname }}"
+        state: directory
+        mode: '0755'
+
+    - name: check if mongosh binary exists
+      ansible.builtin.stat:
+        path: /usr/bin/mongosh
+      register: mongosh_binary
+
+    - name: install db
+      block:
+        - name: download deb package
+          ansible.builtin.get_url:
+            url: "{{ download_url }}"
+            dest: "{{ download_dest }}"
+            mode: '0644'
+
+        - name: ensure file exists
+          ansible.builtin.stat:
+            path: "{{ download_dest }}"
+          register: downloaded_file
+
+        - name: show file info
+          ansible.builtin.debug:
+            msg: "File downloaded successfully! Size: {{ downloaded_file.stat.size }} bytes"
+          when: downloaded_file.stat.exists
+
+        - name: install deb package
+          ansible.builtin.apt:
+            deb: "{{ download_dest }}"
+            state: present
+            update_cache: yes
+
+      when: not mongod_binary.stat.exists
+
+
+    - name: ensure the db data dir has correct permissions
+      ansible.builtin.file:
+        path: /var/lib/mongodb
+        owner: mongodb
+        group: mongodb
+        mode: '0700'
+        recurse: yes
+
+    - name: bind db to listen on the instance vpc local ip
+      ansible.builtin.lineinfile:
+        path: /etc/mongod.conf
+        regexp: '^\s*bindIp:'
+        line: "  bindIp: {{ mongo_bind_ip }}"
+        insertafter: '^ *net:'
+        backup: yes
+      notify: restart-db
+
+    - name: ensure db is running
+      ansible.builtin.systemd:
+        name: mongod
+        state: started
+        enabled: yes
+
+    - name: install db tools
+      block:
+        - name: download deb package
+          ansible.builtin.get_url:
+            url: "{{ db_tools_url }}"
+            dest: "{{ download_tools_dest }}"
+            mode: '0644'
+
+        - name: install mongodb database tools
+          ansible.builtin.apt:
+            deb: "{{ download_tools_dest }}"
+            state: present
+            update_cache: yes
+
+      when: not mongodump_binary.stat.exists
+
+    - name: install mongodb shell
+      block:
+        - name: download mongosh deb package
+          ansible.builtin.get_url:
+            url: "{{ mongosh_url }}"
+            dest: "{{ mongosh_dest }}"
+            mode: '0644'
+
+        - name: install mongosh
+          ansible.builtin.apt:
+            deb: "{{ mongosh_dest }}"
+            state: present
+            update_cache: yes
+      when: not mongosh_binary.stat.exists
+
+  handlers:
+    - name: restart-db
+      ansible.builtin.systemd:
+        name: mongod
+        state: restarted
