@@ -19,7 +19,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET }}
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION }}
   
       - name: Deploy to AWS CloudFormation
         id: cloudformation
@@ -29,11 +29,11 @@ jobs:
           template: cfn.yaml
           no-fail-on-empty-changeset: "1"
           parameter-overrides: >-
-            VpcId=${{ env.VPC_ID }},
-            PublicSubnetId=${{ env.PUBLIC_SUBNET }},
-            AMIID=${{ env.AMI_ID }},
-            KeyName=${{ env.SSH_KEY_NAME }},
-            InstanceType=${{ env.INSTANCE_TYPE }},
+            VpcId=${{ vars.VPC_ID }},
+            PublicSubnetId=${{ vars.PUBLIC_SUBNET }},
+            AMIID=${{ vars.AMI_ID }},
+            KeyName=${{ vars.SSH_KEY_NAME }},
+            InstanceType=${{ vars.INSTANCE_TYPE }},
             BranchName=${{ github.ref_name }},
           capabilities: CAPABILITY_NAMED_IAM
 
