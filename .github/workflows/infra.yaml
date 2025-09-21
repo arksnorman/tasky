@@ -1,1 +1,46 @@
-name: infra workflow
+name: Infrastructure deployment workflow
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-infrastructure:
+    name: Deploy Infrastructure
+    runs-on: ubuntu-latest
+    needs: build-and-push-image
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@0e613a0980cbf65ed5b322eb7a1e075d28913a83
+        with:
+          aws-access-key-id: ${{ secrets.AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET }}
+          aws-region: ${{ env.AWS_REGION }}
+  
+      - name: Deploy to AWS CloudFormation
+        id: cloudformation
+        uses: aws-actions/aws-cloudformation-github-deploy@v1
+        with:
+          name: "MyStack-${{ github.ref_name }}"
+          template: cfn.yaml
+          no-fail-on-empty-changeset: "1"
+          parameter-overrides: >-
+            VpcId=${{ env.VPC_ID }},
+            PublicSubnetId=${{ env.PUBLIC_SUBNET }},
+            AMIID=${{ env.AMI_ID }},
+            KeyName=${{ env.SSH_KEY_NAME }},
+            InstanceType=${{ env.INSTANCE_TYPE }},
+            BranchName=${{ github.ref_name }},
+          capabilities: CAPABILITY_NAMED_IAM
+
+      - name: Show CloudFormation outputs
+        run: |
+          echo "Stack outputs:"
+          echo "Instance Private IP: ${{ steps.cloudformation.outputs.InstancePrivateIP }}"
+          echo "Instance Public IP: ${{ steps.cloudformation.outputs.InstancePublicIp }}"
+          echo "Bucket Name: ${{ steps.cloudformation.outputs.BucketName }}"
