@@ -34,12 +34,12 @@ jobs:
             AMIID=${{ vars.AMI_ID }},
             KeyName=${{ vars.SSH_KEY_NAME }},
             InstanceType=${{ vars.INSTANCE_TYPE }},
-            BranchName=${{ github.ref_name }},
+            BranchName=${{ github.ref_name }}
           capabilities: CAPABILITY_NAMED_IAM
 
       - name: Show CloudFormation outputs
         run: |
           echo "Stack outputs:"
           echo "Instance Private IP: ${{ steps.cloudformation.outputs.InstancePrivateIP }}"
-          echo "Instance Public IP: ${{ steps.cloudformation.outputs.InstancePublicIp }}"
+          echo "Instance Public IP: ${{ steps.cloudformation.outputs.InstancePublicIP }}"
           echo "Bucket Name: ${{ steps.cloudformation.outputs.BucketName }}"
