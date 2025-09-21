@@ -65,6 +65,9 @@ jobs:
           eval "$(ssh-agent -s)"
           ssh-add <(echo "${{ secrets.SSH_KEY }}")
 
+      - name: Check IP
+        run: echo "Instance Public IP: ${{ steps.cloudformation.outputs.InstancePublicIP }}"
+
       - name: Create vars.yaml for Ansible
         env:
           MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.InstancePublicIP }}
