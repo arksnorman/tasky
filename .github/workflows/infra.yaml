@@ -74,6 +74,10 @@ jobs:
         run: |
           eval "$(ssh-agent -s)"
           echo "${{ secrets.SSH_KEY }}" | ssh-add -
+      
+      - name: Debug SSH agent
+        run: |
+          ssh-add -l
 
       - name: Create vars.yaml for Ansible
         env:
