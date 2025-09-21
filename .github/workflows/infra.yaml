@@ -9,6 +9,10 @@ jobs:
   deploy-infrastructure:
     name: Deploy Infrastructure
     runs-on: ubuntu-latest
+    outputs:
+      instance-public-ip: ${{ steps.cloudformation.outputs.InstancePublicIP }}
+      instance-private-ip: ${{ steps.cloudformation.outputs.InstancePrivateIP }}
+      bucket-name: ${{ steps.cloudformation.outputs.BucketName }}
 
     steps:
       - name: Checkout
@@ -53,6 +57,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Check if ansible is installed
+        run: which ansible || echo "Ansible not found"
+
       - name: Install Ansible
         run: |
           sudo apt update
@@ -66,28 +73,25 @@ jobs:
           ssh-add <(echo "${{ secrets.SSH_KEY }}")
 
       - name: Check IP
-        run: echo "Instance Public IP ${{ steps.cloudformation.outputs.InstancePublicIP }}"
+        run: echo "Instance Public IP ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}"
 
       - name: Create vars.yaml for Ansible
         env:
-          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.InstancePublicIP }}
+          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}
         run: |
           cat <<EOF > vars.yaml
           ---
           download_url: "${{ vars.MONGO_SERVER_DOWNLOAD_URL }}"
           download_dest: "${{ vars.MONGO_SERVER_BINARY_DEST }}"
-          mongo_bind_ip: "${{ env.MONGO_BIND_IP }}"
+          mongo_bind_ip: "${{ steps.cloudformation.outputs.InstancePublicIP }}"
           mongosh_dest: "${{ vars.MONGOSH_BINARY_DEST }}"
           mongosh_url: "${{ vars.MONGOSH_DOWNLOAD_URL }}"
           db_tools_url: "${{ vars.MONGO_TOOLS_URL }}"
           download_tools_dest: "${{ vars.MONGO_TOOLS_DEST }}"
           EOF
 
-      - name: Show vars.yaml content
-        run: cat vars.yaml          
-
       - name: Run Ansible Playbook to Setup DB
         env:
-          INSTANCE_IP: ${{ needs.deploy-infrastructure.outputs.InstancePublicIP }}
+          INSTANCE_IP: ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}
         run: |
           ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' --user ubuntu -e @vars.yaml -i ${{ env.INSTANCE_IP }}, ansible-deploy.yaml
