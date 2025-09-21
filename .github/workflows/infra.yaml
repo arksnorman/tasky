@@ -70,16 +70,6 @@ jobs:
               echo "Ansible is already installed"
           fi
 
-      - name: Add SSH Key in memory
-        run: |
-          eval "$(ssh-agent -s)"
-          echo "${{ secrets.SSH_KEY }}" | ssh-add -
-          ssh-add -l
-      
-      - name: Debug SSH agent
-        run: |
-          ssh-add -l
-
       - name: Create vars.yaml for Ansible
         env:
           MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}
@@ -99,4 +89,7 @@ jobs:
         env:
           INSTANCE_IP: ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}
         run: |
+          eval "$(ssh-agent -s)"
+          echo "${{ secrets.SSH_KEY }}" | ssh-add -
+          ssh-add -l
           ansible-playbook --ssh-common-args='-o StrictHostKeyChecking=no' --user ubuntu -e @vars.yaml -i ${{ env.INSTANCE_IP }}, ansible-deploy.yaml
