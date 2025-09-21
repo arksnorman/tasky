@@ -57,23 +57,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Check if ansible is installed
-        run: which ansible || echo "Ansible not found"
-
       - name: Install Ansible
         run: |
-          sudo apt update
-          sudo apt install software-properties-common -y
-          sudo add-apt-repository --update ppa:ansible/ansible -y
-          sudo apt install ansible -y
+          if ! command -v ansible &> /dev/null
+          then
+              echo "Ansible could not be found, installing..."
+              sudo apt update
+              sudo apt install software-properties-common -y
+              sudo add-apt-repository --update ppa:ansible/ansible -y
+              sudo apt install ansible -y
+          else
+              echo "Ansible is already installed"
+          fi
 
       - name: Add SSH Key in memory
         run: |
           eval "$(ssh-agent -s)"
-          ssh-add <(echo "${{ secrets.SSH_KEY }}")
-
-      - name: Check IP
-        run: echo "Instance Public IP ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}"
+          echo "${{ secrets.SSH_KEY }}" | ssh-add -
 
       - name: Create vars.yaml for Ansible
         env:
