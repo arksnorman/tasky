@@ -72,13 +72,13 @@ jobs:
 
       - name: Create vars.yaml for Ansible
         env:
-          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.instance-public-ip }}
+          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.instance-private-ip }}
         run: |
           cat <<EOF > vars.yaml
           ---
           download_url: "${{ vars.MONGO_SERVER_DOWNLOAD_URL }}"
           download_dest: "${{ vars.MONGO_SERVER_BINARY_DEST }}"
-          mongo_bind_ip: "${{ steps.cloudformation.outputs.InstancePublicIP }}"
+          mongo_bind_ip: "${{ env.MONGO_BIND_IP }}"
           mongosh_dest: "${{ vars.MONGOSH_BINARY_DEST }}"
           mongosh_url: "${{ vars.MONGOSH_DOWNLOAD_URL }}"
           db_tools_url: "${{ vars.MONGO_TOOLS_URL }}"
