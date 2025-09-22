@@ -119,11 +119,14 @@
         mode: '0755'
 
     - name: create cronjob for db backup
-      ansible.builtin.shell: |
-        cat <<EOF > /etc/cron.d/mongod-backup
-        0 * * * * export TIMESTAMP=$(date +%F-%H%M%S) && /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive="/tmp/dump.gz" --gzip &>> "/var/log/mongod-backup/$TIMESTAMP.log" && aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/$TIMESTAMP.gz" &>> "/var/log/mongod-backup/$TIMESTAMP.log"
-        EOF
-
+      content: |
+        0 * * * * export TIMESTAMP=\$(date +%F-%H%M%S) && /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive="/tmp/dump.gz" --gzip &>> "/var/log/mongod-backup/\$TIMESTAMP.log" && aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/\$TIMESTAMP.gz" &>> "/var/log/mongod-backup/\$TIMESTAMP.log"
+      ansible.builtin.copy:
+        dest: /etc/cron.d/mongod-backup
+        mode: '0644'
+        user: root
+        group: root
+  
   handlers:
     - name: restart-db
       ansible.builtin.systemd:
