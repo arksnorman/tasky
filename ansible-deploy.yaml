@@ -106,8 +106,30 @@
             update_cache: yes
       when: not mongosh_binary.stat.exists
 
+    - name: install aws cli
+      ansible.builtin.apt:
+        name: awscli
+        state: present
+        update_cache: yes
+
+    - name: ensure backup log directory exists
+      ansible.builtin.file:
+        path: /var/log/mongod-backup
+        state: directory
+        mode: '0755'
+
+    - name: create cronjob for db backup
+      ansible.builtin.shell: |
+        cat <<EOF > /etc/cron.d/mongod-backup
+        0 * * * * export TIMESTAMP=$(date +%F-%H%M%S) && /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive="/tmp/dump.gz" --gzip &>> "/var/log/mongod-backup/$TIMESTAMP.log" && aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/$TIMESTAMP.gz" &>> "/var/log/mongod-backup/$TIMESTAMP.log"
+        EOF
+
   handlers:
     - name: restart-db
       ansible.builtin.systemd:
         name: mongod
         state: restarted
+
+
+# Install aws-cli on the instance
+# aws s3 cp /tmp/all-dbs-2025-09-21-23-29-38.gz s3://webapp-exercise-main > t.txt

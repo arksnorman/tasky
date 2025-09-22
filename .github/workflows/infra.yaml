@@ -71,18 +71,17 @@ jobs:
           fi
 
       - name: Create vars.yaml for Ansible
-        env:
-          MONGO_BIND_IP: ${{ needs.deploy-infrastructure.outputs.instance-private-ip }}
         run: |
           cat <<EOF > vars.yaml
           ---
           download_url: "${{ vars.MONGO_SERVER_DOWNLOAD_URL }}"
           download_dest: "${{ vars.MONGO_SERVER_BINARY_DEST }}"
-          mongo_bind_ip: "${{ env.MONGO_BIND_IP }}"
+          mongo_bind_ip: "${{ needs.deploy-infrastructure.outputs.instance-private-ip }}"
           mongosh_dest: "${{ vars.MONGOSH_BINARY_DEST }}"
           mongosh_url: "${{ vars.MONGOSH_DOWNLOAD_URL }}"
           db_tools_url: "${{ vars.MONGO_TOOLS_URL }}"
           download_tools_dest: "${{ vars.MONGO_TOOLS_DEST }}"
+          bucket_name: "${{ needs.deploy-infrastructure.outputs.bucket-name }}"
           EOF
 
       - name: Run Ansible Playbook to Setup DB
