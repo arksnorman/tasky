@@ -127,7 +127,13 @@
         mode: '0644'
         owner: root
         group: root
-  
+      
+    - name: add empty line at end of cron file
+      ansible.builtin.lineinfile:
+        path: /etc/cron.d/mongod-backup
+        line: ""
+        state: present
+
   handlers:
     - name: restart-db
       ansible.builtin.systemd:
