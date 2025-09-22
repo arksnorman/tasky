@@ -122,7 +122,7 @@
       ansible.builtin.copy:
         content: |
           0 * * * * root export TIMESTAMP=$(date +%F-%H%M%S) && /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive="/tmp/dump.gz" --gzip &>> "/var/log/mongod-backup/$TIMESTAMP.log" && aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/$TIMESTAMP.gz" &>> "/var/log/mongod-backup/$TIMESTAMP.log"
-
+          
         dest: /etc/cron.d/mongod-backup
         mode: '0644'
         owner: root
