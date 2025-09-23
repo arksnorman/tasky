@@ -140,7 +140,10 @@ Resources:
           - !Ref PrivateSubnet2
         SecurityGroupIds: []
       RoleArn: !GetAtt EKSClusterRole.Arn
-    DependsOn: []
+    DependsOn: 
+      - EKSClusterRole
+      - PrivateSubnet1
+      - PrivateSubnet2
 
   # Setup EKS Node Group
   EKSNodeGroup:
@@ -159,6 +162,9 @@ Resources:
       AmiType: AL2_x86_64
       InstanceTypes:
         - !Ref InstanceType
+    DependsOn: 
+      - EKSCluster
+      - EKSNodeRole
 
   VPC:
     Type: AWS::EC2::VPC
