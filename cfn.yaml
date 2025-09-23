@@ -159,7 +159,6 @@ Resources:
         DesiredSize: !Ref NodeCapacity
         MinSize: 1
         MaxSize: 4
-      AmiType: AL2_x86_64
       InstanceTypes:
         - !Ref InstanceType
     DependsOn: 
