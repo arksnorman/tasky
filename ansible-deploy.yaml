@@ -118,11 +118,26 @@
         state: directory
         mode: '0755'
 
+    - name: create backup script
+      ansible.builtin.copy:
+        content: |
+          #!/bin/bash
+
+          set -euo pipefail
+
+          TIMESTAMP=$(date +%F-%H%M%S)
+          /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive=/tmp/dump.gz --gzip &>> "/var/log/mongod-backup/$TIMESTAMP.log"
+          aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/$TIMESTAMP.gz" &>> "/var/log/mongod-backup/$TIMESTAMP.log"
+
+        dest: /usr/local/bin/mongod-backup.sh
+        mode: '0755'
+        owner: root
+        group: root
+
     - name: create cronjob for db backup
       ansible.builtin.copy:
         content: |
-          0 * * * * root export TIMESTAMP=$(date +%F-%H%M%S) && /usr/bin/mongodump --host {{ mongo_bind_ip }} --archive="/tmp/dump.gz" --gzip &>> "/var/log/mongod-backup/$TIMESTAMP.log" && aws s3 cp "/tmp/dump.gz" "s3://{{ bucket_name }}/$TIMESTAMP.gz" &>> "/var/log/mongod-backup/$TIMESTAMP.log"
-          
+          0 * * * * root /usr/local/bin/mongod-backup.sh
         dest: /etc/cron.d/mongod-backup
         mode: '0644'
         owner: root
@@ -139,7 +154,3 @@
       ansible.builtin.systemd:
         name: mongod
         state: restarted
-
-
-# Install aws-cli on the instance
-# aws s3 cp /tmp/all-dbs-2025-09-21-23-29-38.gz s3://webapp-exercise-main > t.txt
