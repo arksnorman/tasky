@@ -38,7 +38,9 @@ jobs:
             AMIID=${{ vars.AMI_ID }},
             KeyName=${{ vars.SSH_KEY_NAME }},
             InstanceType=${{ vars.INSTANCE_TYPE }},
-            BranchName=${{ github.ref_name }}
+            MongoAmiId=${{ vars.MONGO_AMI_ID }},
+            BranchName=${{ github.ref_name }},
+            ClusterName=${{ vars.CLUSTER_NAME }}
           capabilities: CAPABILITY_NAMED_IAM
 
       - name: Show CloudFormation outputs
