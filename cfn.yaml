@@ -47,7 +47,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow SSH
-      VpcId: !Ref VpcId
+      VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -61,7 +61,7 @@ Resources:
       InstanceType: !Ref InstanceType
       ImageId: !Ref MongoAmiId
       KeyName: !Ref KeyName
-      SubnetId: !Ref PublicSubnetId
+      SubnetId: !Ref PublicSubnet1
       SecurityGroupIds:
         - !Ref MongoDBInstanceSG
 
