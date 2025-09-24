@@ -173,6 +173,7 @@ Resources:
       AddonName: vpc-cni
       ClusterName: !Ref ClusterName
       ResolveConflicts: OVERWRITE
+    DependsOn: EKSCluster
 
   CoreDnsAddon:
     Type: AWS::EKS::Addon
@@ -180,6 +181,7 @@ Resources:
       AddonName: coredns
       ClusterName: !Ref ClusterName
       ResolveConflicts: OVERWRITE
+    DependsOn: EKSCluster
 
   KubeProxyAddon:
     Type: AWS::EKS::Addon
@@ -187,6 +189,7 @@ Resources:
       AddonName: kube-proxy
       ClusterName: !Ref ClusterName
       ResolveConflicts: OVERWRITE
+    DependsOn: EKSCluster
 
   VPC:
     Type: AWS::EC2::VPC
