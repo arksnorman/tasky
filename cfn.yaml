@@ -72,8 +72,32 @@ Resources:
   BackupBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub webapp-exercise-${BranchName}
-      AccessControl: PublicRead
+      BucketName: !Sub webapp-exercise-arkstest
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+  
+  BackupBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BackupBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicListBucket
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:ListBucket
+            Resource: !GetAtt BackupBucket.Arn
+          - Sid: PublicReadObject
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject
+            Resource: !Sub "${BackupBucket.Arn}/*"
 
   MongoDBInstanceRole:
     Type: AWS::IAM::Role
