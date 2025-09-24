@@ -101,7 +101,7 @@ jobs:
     steps:
       - name: Install kubectl
         run: |
-          snap install kubectl --classic
+          sudo snap install kubectl --classic
           kubectl version --client
 
       - name: Configure AWS credentials
