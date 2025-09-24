@@ -32,9 +32,6 @@ Parameters:
   PrivateSubnetCidr2:
     Type: String
     Default: 10.0.3.0/24
-  AllowedMongoCidr:
-    Type: String
-    Default: 10.0.0.0/16
 
 Resources:
   MongoDBInstanceProfile:
@@ -53,6 +50,10 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 27017
+          ToPort: 27017
+          CidrIp: !GetAtt EKSClusterSG.GroupId
 
   MongoDBInstance:
     Type: AWS::EC2::Instance
@@ -135,6 +136,13 @@ Resources:
       Roles:
         - !Ref EKSNodeRole
 
+  # Create EKS Cluster Security Group
+  EKSClusterSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EKS Cluster Security Group
+      VpcId: !Ref VPC
+
   # Setup EKS Cluster
   EKSCluster:
     Type: AWS::EKS::Cluster
@@ -144,7 +152,8 @@ Resources:
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
-        SecurityGroupIds: []
+        SecurityGroupIds:
+          - !Ref EKSClusterSG
       RoleArn: !GetAtt EKSClusterRole.Arn
     DependsOn: 
       - EKSClusterRole
