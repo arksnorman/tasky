@@ -166,6 +166,28 @@ Resources:
       - EKSCluster
       - EKSNodeRole
 
+  # Addons for EKS Cluster
+  VpcCniAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      AddonName: vpc-cni
+      ClusterName: !Ref ClusterName
+      ResolveConflicts: OVERWRITE
+
+  CoreDnsAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      AddonName: coredns
+      ClusterName: !Ref ClusterName
+      ResolveConflicts: OVERWRITE
+
+  KubeProxyAddon:
+    Type: AWS::EKS::Addon
+    Properties:
+      AddonName: kube-proxy
+      ClusterName: !Ref ClusterName
+      ResolveConflicts: OVERWRITE
+
   VPC:
     Type: AWS::EC2::VPC
     Properties:
