@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: WebApp Template
+Description: Wiz WebApp
 
 Parameters:
   KeyName:
@@ -53,7 +53,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 27017
           ToPort: 27017
-          SourceSecurityGroupId: !Ref EKSClusterSG
+          CidrIp: !Ref VpcCidr
 
   MongoDBInstance:
     Type: AWS::EC2::Instance
@@ -72,7 +72,7 @@ Resources:
   BackupBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub webapp-exercise-arkstest
+      BucketName: !Sub webapp-exercise-${BranchName}
       PublicAccessBlockConfiguration:
         BlockPublicAcls: false
         IgnorePublicAcls: false
@@ -161,13 +161,6 @@ Resources:
       Roles:
         - !Ref EKSNodeRole
 
-  # Create EKS Cluster Security Group
-  EKSClusterSG:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: EKS Cluster Security Group
-      VpcId: !Ref VPC
-
   # Setup EKS Cluster
   EKSCluster:
     Type: AWS::EKS::Cluster
@@ -177,8 +170,6 @@ Resources:
         SubnetIds:
           - !Ref PrivateSubnet1
           - !Ref PrivateSubnet2
-        SecurityGroupIds:
-          - !Ref EKSClusterSG
       RoleArn: !GetAtt EKSClusterRole.Arn
     DependsOn: 
       - EKSClusterRole
