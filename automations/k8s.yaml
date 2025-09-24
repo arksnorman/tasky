@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: wiz
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tasky-sa
+  namespace: wiz
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: tasky-cluster-admin-binding
+subjects:
+  - kind: ServiceAccount
+    name: tasky-sa
+    namespace: wiz
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasky-app-deployment
+  namespace: wiz
+  labels:
+    app: tasky
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tasky
+  template:
+    metadata:
+      labels:
+        app: tasky
+    spec:
+      serviceAccountName: tasky-sa
+      containers:
+        - name: tasky
+          image: arksnorman/tasky:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          env:
+            - name: MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: tasky-config
+                  key: MONGODB_URI
+            - name: SECRET_KEY
+              valueFrom:
+                configMapKeyRef:
+                  name: tasky-config
+                  key: SECRET_KEY
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasky-service
+  namespace: wiz
+spec:
+  type: LoadBalancer
+  selector:
+    app: tasky
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
