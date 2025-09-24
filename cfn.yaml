@@ -73,6 +73,7 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub webapp-exercise-${BranchName}
+      AccessControl: PublicRead
 
   MongoDBInstanceRole:
     Type: AWS::IAM::Role
