@@ -97,7 +97,7 @@ jobs:
   deploy-on-eks:
     name: Deploy on EKS
     runs-on: ubuntu-latest
-    needs: run-ansible
+    needs: [deploy-infrastructure, run-ansible]
     steps:
       - name: Install kubectl
         run: |
