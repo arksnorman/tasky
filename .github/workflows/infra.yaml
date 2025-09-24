@@ -80,6 +80,9 @@ jobs:
           db_tools_url: "${{ vars.MONGO_TOOLS_URL }}"
           download_tools_dest: "${{ vars.MONGO_TOOLS_DEST }}"
           bucket_name: "${{ needs.deploy-infrastructure.outputs.bucket-name }}"
+          db_name: "${{ vars.DB_NAME }}"
+          db_user: "${{ vars.DB_USER }}"
+          db_pass: "${{ secrets.DB_PASSWORD }}"
           EOF
 
       - name: Run Ansible Playbook to Setup DB

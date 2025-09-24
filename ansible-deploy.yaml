@@ -106,6 +106,13 @@
             update_cache: yes
       when: not mongosh_binary.stat.exists
 
+    - name: Create MongoDB user
+      shell: |
+        mongosh --host "{{ mongo_bind_ip }}" --eval 'db.getSiblingDB("admin").createUser({user:"{{ db_user }}", pwd:"{{ db_pass }}", roles:[{role:"readWrite", db:"{{ db_name }}" }]})'
+      register: mongo_user_result
+      changed_when: "'already exists' not in mongo_user_result.stderr"
+      failed_when: mongo_user_result.rc != 0 and 'already exists' not in mongo_user_result.stderr
+
     - name: install aws cli
       ansible.builtin.apt:
         name: awscli
