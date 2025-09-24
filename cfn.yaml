@@ -57,6 +57,9 @@ Resources:
   MongoDBInstance:
     Type: AWS::EC2::Instance
     Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub "${BranchName}-mongodb-instance"
       IamInstanceProfile: !Ref MongoDBInstanceProfile
       InstanceType: !Ref InstanceType
       ImageId: !Ref MongoAmiId
@@ -108,6 +111,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKSComputePolicy
         - arn:aws:iam::aws:policy/AmazonEKSLoadBalancingPolicy
         - arn:aws:iam::aws:policy/AmazonEKSNetworkingPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
 
   EKSNodeRole:
     Type: AWS::IAM::Role
