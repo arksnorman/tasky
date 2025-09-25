@@ -54,7 +54,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: tasky-config
-                  key: MONGODB_URI
+                  key: MONGO_URI
             - name: SECRET_KEY
               valueFrom:
                 configMapKeyRef:
