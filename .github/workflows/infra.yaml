@@ -124,7 +124,7 @@ jobs:
           echo "Instance Private IP: ${{ env.INSTANCE_IP }}"
           kubectl create namespace ${{ vars.NAMESPACE }} || echo "Namespace ${{ vars.NAMESPACE }} already exists"
           kubectl config set-context --current --namespace=${{ vars.NAMESPACE }}
-          kubectl create configmap tasky-config --from-literal=SECRET_KEY=${{ secrets.APP_SECRET }} --from-literal=MONGO_URI="mongodb://${{ vars.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ env.INSTANCE_IP }}:27017/${{ vars.DB_NAME }}" --dry-run=client -o yaml | kubectl apply -f -
+          kubectl create configmap tasky-config --from-literal=SECRET_KEY=${{ secrets.APP_SECRET }} --from-literal=MONGO_URI="mongodb://${{ vars.DB_USER }}:${{ secrets.DB_PASSWORD }}@${{ env.INSTANCE_IP }}:27017/${{ vars.DB_NAME }}?authSource=admin" --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy Application to EKS
         run: |
